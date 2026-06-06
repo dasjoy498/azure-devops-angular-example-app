@@ -38,7 +38,7 @@ stages:
   - job: run_testcases
     displayName: "Run Testcases"
     container:
-      image: java-node:21-jre-24
+      image: timbru31/java-node:21-jre-24
     variables:
       npm_config_cache: $(Pipeline.Workspace)/.npm
     steps:
