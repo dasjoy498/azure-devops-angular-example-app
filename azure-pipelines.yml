@@ -15,6 +15,26 @@ pool:
 stages:
 - stage: build
   jobs:
-  - job: welcome
+  - job: build_application
+    displayName: "Build Application"
+    container:
+      image: 24-alpine3.22
     steps:
-      - script: echo "Hello, welcome to the azure pipelines world!"
+    - script: npm install
+      displayName: "Install npm Dependencis"
+    - script: npm audit
+      displayName: "Asses vulnerability of npm Dependencis"
+- stage: test
+  jobs:
+  - job: run_testcases
+    displayName: "Run Testcases"
+    container:
+      image: 24-alpine3.22
+    steps:
+    - script: npm run test:coverage
+      displayName: "run Testcases"
+    - task: PublishCodeCoverageResults@2
+      displayName: 'Publish Coverage to Azure UI'
+      inputs:
+        summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/cobertura-coverage.xml'
+    
