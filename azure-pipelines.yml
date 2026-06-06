@@ -71,7 +71,7 @@ stages:
         apt-get update
         apt-get install -y openjdk-17-jre
         java -version
-  displayName: "Install Java for Sonar"
+      displayName: "Install Java for Sonar"
     - task: SonarQubeAnalyze@8
       displayName: 'Run SonarQube Code Analysis'
     - task: SonarQubePublish@8
