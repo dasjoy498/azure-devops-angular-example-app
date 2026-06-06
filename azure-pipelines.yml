@@ -51,7 +51,7 @@ stages:
         path: $(npm_config_cache)
     - script: npm install
       displayName: "Install npm Dependencis"
-    - task: SonarQubePrepare@6
+    - task: SonarQubePrepare@5
       displayName: 'Prepare SonarQube Analysis'
       inputs:
         SonarQube: 'azure-sonar-sc'
@@ -67,9 +67,9 @@ stages:
           sonar.exclusions=**/node_modules/**,**/coverage/**,dist/**
     - script: npm run test:coverage
       displayName: "run Testcases"
-    - task: SonarQubeAnalyze@6
+    - task: SonarQubeAnalyze@5
       displayName: 'Run SonarQube Code Analysis'
-    - task: SonarQubePublish@6
+    - task: SonarQubePublish@5
       displayName: 'Publish Quality Gate Result'
       inputs:
         pollingTimeoutSec: '300'
