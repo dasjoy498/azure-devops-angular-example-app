@@ -14,7 +14,7 @@
     "knip": "knip",
     "test": "ng test --no-watch",
     "test:watch": "ng test",
-    "test:coverage": "ng test --coverage --no-watch && npx nyc report --reporter=cobertura --report-dir=coverage --temp-dir=coverage",
+    "test:coverage": "ng test --coverage --no-watch",
     "playwright:install": "playwright install && playwright install-deps",
     "playwright": "playwright test --project=chromium",
     "test:e2e:local:serve": "npm run playwright:install && node scripts/e2e.mjs",
@@ -48,7 +48,6 @@
     "rxjs": "7.8.2",
     "tslib": "2.8.1",
     "@vitest/coverage-istanbul": "^4.1.4",
-    "nyc": "^17.0.0",
     "vitest": "^4.1.4"
   },
   "devDependencies": {

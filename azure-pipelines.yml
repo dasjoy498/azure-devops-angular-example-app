@@ -40,7 +40,25 @@ stages:
         artifact: coverage-report
         targetPath: "$(System.DefaultWorkingDirectory)/coverage"
     
-    
+  
+  - job: covert_coverage_report
+    displayName: "Convert Coverage Report"
+    container:
+      image: python:3.15.0b2-bookworm
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: 'coverage-report'
+        path: '$(Pipeline.Workspace)/coverage'
+    - script: |
+        pip install lcov-cobertura --break-system-packages
+        mkdir -p converted_report
+        python3 lcov_cobertura.py coverage/lcov.info --output converted_report/cobertura-coverage.xml
+    - task: PublishPipelineArtifact@1
+      inputs:
+        artifact: converted-report
+        targetPath: converted_report
+
   - job: publish_coverage
     displayName: "Publish Coverage"
     dependsOn: run_testcases
@@ -49,8 +67,8 @@ stages:
     steps:
     - task: DownloadPipelineArtifact@2
       inputs:
-        artifact: 'coverage-report'
-        path: '$(Pipeline.Workspace)/coverage'
+        artifact: 'converted-report'
+        path: '$(Pipeline.Workspace)/converted_report'
     - script: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
         export PATH="$PATH:$HOME/.dotnet/tools"
@@ -60,4 +78,4 @@ stages:
       displayName: 'Publish Coverage to Azure UI'
       inputs:
         codeCoverageTool: 'Cobertura'
-        summaryFileLocation: '$(Pipeline.Workspace)/coverage/cobertura-coverage.xml'
+        summaryFileLocation: '$(Pipeline.Workspace)/converted_report/cobertura-coverage.xml'
