@@ -31,6 +31,8 @@ stages:
     container:
       image: node:24-bullseye
     steps:
+    - script: npm install
+      displayName: "Install npm Dependencis"
     - script: npm run test:coverage
       displayName: "run Testcases"
     - task: PublishCodeCoverageResults@2
