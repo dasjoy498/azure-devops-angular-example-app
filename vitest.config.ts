@@ -1,14 +1,16 @@
-// Learn more about Vitest configuration options at https://vitest.dev/config/
-import { defineConfig } from 'vitest/config';
+import type { UserConfig } from 'vitest/config';
 
-export default defineConfig({
+const config: UserConfig = {
   test: {
     environment: 'jsdom',
     setupFiles: ['vitest-setup.config.ts'],
     coverage: {
       reportsDirectory: 'coverage',
+      reporter: ['text', 'lcov', 'cobertura'], // Cobertura for Azure DevOps
       exclude: ['**/*.html'],
     },
     globals: true,
   },
-});
+};
+
+export default config;
