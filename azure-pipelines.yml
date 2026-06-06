@@ -20,6 +20,13 @@ stages:
     container:
       image: node:24-bullseye
     steps:
+    - task: Cache@2
+      displayName: 'Cache npm packages'
+      inputs:
+        key: 'npm | "$(Agent.OS)" | package-lock.json'
+        restoreKeys: |
+          npm | "$(Agent.OS)"
+        path: $(npm_config_cache)
     - script: npm install
       displayName: "Install npm Dependencis"
     - script: npm audit || true
@@ -31,6 +38,13 @@ stages:
     container:
       image: node:24-bullseye
     steps:
+    - task: Cache@2
+      displayName: 'Cache npm packages'
+      inputs:
+        key: 'npm | "$(Agent.OS)" | package-lock.json'
+        restoreKeys: |
+          npm | "$(Agent.OS)"
+        path: $(npm_config_cache)
     - script: npm install
       displayName: "Install npm Dependencis"
     - script: npm run test:coverage
@@ -39,6 +53,7 @@ stages:
       inputs:
         artifact: coverage-report
         targetPath: "$(System.DefaultWorkingDirectory)/coverage"
+      displayName: "Save coverage-report as artifact"
     
   
   - job: covert_coverage_report
@@ -48,6 +63,7 @@ stages:
       image: python:3.15.0b2-bookworm
     steps:
     - task: DownloadPipelineArtifact@2
+      displayName: "Download coverage-report"
       inputs:
         artifact: 'coverage-report'
         path: '$(Pipeline.Workspace)/coverage'
@@ -55,10 +71,12 @@ stages:
         pip install lcov-cobertura --break-system-packages
         mkdir -p converted_report
         python3 lcov_cobertura.py $(Pipeline.Workspace)/coverage/lcov.info --output converted_report/cobertura-coverage.xml
+      displayName: "Convert Coverage Report"
     - task: PublishPipelineArtifact@1
       inputs:
         artifact: converted-report
         targetPath: converted_report
+      displayName: "Save Converted Coverage Report"
 
   - job: publish_coverage
     displayName: "Publish Coverage"
@@ -67,14 +85,14 @@ stages:
       image: mcr.microsoft.com/dotnet/sdk:8.0
     steps:
     - task: DownloadPipelineArtifact@2
+      displayName: "Download Converted Coverage Report"
       inputs:
         artifact: 'converted-report'
         path: '$(Pipeline.Workspace)/converted_report'
     - script: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
         export PATH="$PATH:$HOME/.dotnet/tools"
-    - script: |
-        ls -lR $(Pipeline.Workspace)/coverage
+      displayName: "Install dotnet tool for Coverage publish"
     - task: PublishCodeCoverageResults@2
       displayName: 'Publish Coverage to Azure UI'
       inputs:
