@@ -35,10 +35,28 @@ stages:
       displayName: "Install npm Dependencis"
     - script: npm run test:coverage
       displayName: "run Testcases"
+    - task: PublishPipelineArtifact@1
+      inputs:
+        artifact: coverage-report
+        targetPath: "$(System.DefaultWorkingDirectory)/coverage"
+    
+    
+  - job: publish_coverage
+    displayName: "Publish Coverage"
+    dependsOn: coverage_and_sonar
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+    steps:
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: 'coverage-report'
+        path: '$(Pipeline.Workspace)/coverage'
+    - script: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        export PATH="$PATH:$HOME/.dotnet/tools"
     - task: PublishCodeCoverageResults@2
       displayName: 'Publish Coverage to Azure UI'
       inputs:
         codeCoverageTool: 'Cobertura'
         summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/cobertura-coverage.xml'
         reportDirectory: '$(Pipeline.Workspace)/coverage'
-    
