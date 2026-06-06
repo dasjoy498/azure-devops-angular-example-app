@@ -18,7 +18,7 @@ stages:
   - job: build_application
     displayName: "Build Application"
     container:
-      image: node:24-alpine3.22
+      image: node:24-alpine
     steps:
     - script: npm install
       displayName: "Install npm Dependencis"
@@ -29,7 +29,7 @@ stages:
   - job: run_testcases
     displayName: "Run Testcases"
     container:
-      image: node:24-alpine3.22
+      image: node:24-alpine
     steps:
     - script: npm run test:coverage
       displayName: "run Testcases"
