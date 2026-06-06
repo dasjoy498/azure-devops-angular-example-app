@@ -43,6 +43,7 @@ stages:
   
   - job: covert_coverage_report
     displayName: "Convert Coverage Report"
+    dependsOn: run_testcases
     container:
       image: python:3.15.0b2-bookworm
     steps:
@@ -61,7 +62,7 @@ stages:
 
   - job: publish_coverage
     displayName: "Publish Coverage"
-    dependsOn: run_testcases
+    dependsOn: covert_coverage_report
     container:
       image: mcr.microsoft.com/dotnet/sdk:8.0
     steps:
