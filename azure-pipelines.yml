@@ -54,7 +54,7 @@ stages:
     - script: |
         pip install lcov-cobertura --break-system-packages
         mkdir -p converted_report
-        python3 lcov_cobertura.py coverage/lcov.info --output converted_report/cobertura-coverage.xml
+        python3 lcov_cobertura.py $(Pipeline.Workspace)/coverage/lcov.info --output converted_report/cobertura-coverage.xml
     - task: PublishPipelineArtifact@1
       inputs:
         artifact: converted-report
