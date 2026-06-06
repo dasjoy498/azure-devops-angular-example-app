@@ -19,6 +19,8 @@ stages:
     displayName: "Build Application"
     container:
       image: node:24-bullseye
+    variables:
+      npm_config_cache: $(Pipeline.Workspace)/.npm
     steps:
     - task: Cache@2
       displayName: 'Cache npm packages'
@@ -37,6 +39,8 @@ stages:
     displayName: "Run Testcases"
     container:
       image: node:24-bullseye
+    variables:
+      npm_config_cache: $(Pipeline.Workspace)/.npm
     steps:
     - task: Cache@2
       displayName: 'Cache npm packages'
