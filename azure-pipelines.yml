@@ -54,9 +54,11 @@ stages:
     - script: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
         export PATH="$PATH:$HOME/.dotnet/tools"
+    - script: |
+        ls -lR $(Pipeline.Workspace)/coverage
     - task: PublishCodeCoverageResults@2
       displayName: 'Publish Coverage to Azure UI'
       inputs:
         codeCoverageTool: 'Cobertura'
-        summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/cobertura-coverage.xml'
+        summaryFileLocation: '$(Pipeline.Workspace)/coverage/cobertura-coverage.xml'
         reportDirectory: '$(Pipeline.Workspace)/coverage'
