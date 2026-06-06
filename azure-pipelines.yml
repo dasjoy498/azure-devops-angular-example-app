@@ -51,8 +51,28 @@ stages:
         path: $(npm_config_cache)
     - script: npm install
       displayName: "Install npm Dependencis"
+    - task: SonarQubePrepare@6
+      displayName: 'Prepare SonarQube Analysis'
+      inputs:
+        SonarQube: 'azure-sonar-sc'
+        scannerMode: 'CLI'
+        configMode: 'manual'
+        cliProjectKey: 'angular-example-app'
+        cliProjectName: 'Angular Example App'
+        cliSources: 'src'
+        extraProperties: |
+          sonar.tests=src
+          sonar.test.inclusions=**/*.spec.ts,**/*.test.ts
+          sonar.javascript.lcov.reportPaths=coverage/lcov.info
+          sonar.exclusions=**/node_modules/**,**/coverage/**,dist/**
     - script: npm run test:coverage
       displayName: "run Testcases"
+    - task: SonarQubeAnalyze@6
+      displayName: 'Run SonarQube Code Analysis'
+    - task: SonarQubePublish@6
+      displayName: 'Publish Quality Gate Result'
+      inputs:
+        pollingTimeoutSec: '300'
     - task: PublishPipelineArtifact@1
       inputs:
         artifact: coverage-report
