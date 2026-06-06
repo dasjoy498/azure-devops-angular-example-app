@@ -38,7 +38,6 @@ stages:
     - task: PublishCodeCoverageResults@2
       displayName: 'Publish Coverage to Azure UI'
       inputs:
-        summaryFileLocation: 
         codeCoverageTool: 'Cobertura'
         summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/cobertura-coverage.xml'
         reportDirectory: '$(Pipeline.Workspace)/coverage'
