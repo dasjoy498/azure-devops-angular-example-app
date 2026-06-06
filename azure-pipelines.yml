@@ -61,7 +61,6 @@ stages:
         cliProjectName: 'Angular Example App'
         cliSources: 'src'
         extraProperties: |
-          sonar.branch.name=
           sonar.tests=src
           sonar.test.inclusions=**/*.spec.ts,**/*.test.ts
           sonar.javascript.lcov.reportPaths=coverage/lcov.info
