@@ -38,7 +38,7 @@ stages:
   - job: run_testcases
     displayName: "Run Testcases"
     container:
-      image: node:24-bullseye
+      image: java-node:21-jre-24
     variables:
       npm_config_cache: $(Pipeline.Workspace)/.npm
     steps:
@@ -67,11 +67,6 @@ stages:
           sonar.exclusions=**/node_modules/**,**/coverage/**,dist/**
     - script: npm run test:coverage
       displayName: "run Testcases"
-    - script: |
-        apt-get update
-        apt-get install -y openjdk-17-jre
-        java -version
-      displayName: "Install Java for Sonar"
     - task: SonarQubeAnalyze@8
       displayName: 'Run SonarQube Code Analysis'
     - task: SonarQubePublish@8
