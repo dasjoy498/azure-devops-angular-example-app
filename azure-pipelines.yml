@@ -1,0 +1,123 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+- azure-pipelines
+
+pool:
+  name: 'dasjoy-agent-pool'
+  demands:
+    - Agent.Name -equals agent2
+
+stages:
+- stage: build
+  jobs:
+  - job: build_application
+    displayName: "Build Application"
+    container:
+      image: node:24-bullseye
+    variables:
+      npm_config_cache: $(Pipeline.Workspace)/.npm
+    steps:
+    - task: Cache@2
+      displayName: 'Cache npm packages'
+      inputs:
+        key: 'npm | "$(Agent.OS)" | package-lock.json'
+        restoreKeys: |
+          npm | "$(Agent.OS)"
+        path: $(npm_config_cache)
+    - script: npm install
+      displayName: "Install npm Dependencis"
+    - script: npm audit || true
+      displayName: "Asses vulnerability of npm Dependencis"
+- stage: test
+  jobs:
+  - job: run_testcases
+    displayName: "Run Testcases"
+    container:
+      image: timbru31/java-node:21-jre-24
+    variables:
+      npm_config_cache: $(Pipeline.Workspace)/.npm
+    steps:
+    - task: Cache@2
+      displayName: 'Cache npm packages'
+      inputs:
+        key: 'npm | "$(Agent.OS)" | package-lock.json'
+        restoreKeys: |
+          npm | "$(Agent.OS)"
+        path: $(npm_config_cache)
+    - script: npm install
+      displayName: "Install npm Dependencis"
+    - task: SonarQubePrepare@8
+      displayName: 'Prepare SonarQube Analysis'
+      inputs:
+        SonarQube: 'azure-sonar-sc'
+        scannerMode: 'CLI'
+        configMode: 'manual'
+        cliProjectKey: 'angular-example-app'
+        cliProjectName: 'Angular Example App'
+        cliSources: 'src'
+        extraProperties: |
+          sonar.tests=src
+          sonar.test.inclusions=**/*.spec.ts,**/*.test.ts
+          sonar.javascript.lcov.reportPaths=coverage/lcov.info
+          sonar.exclusions=**/node_modules/**,**/coverage/**,dist/**
+    - script: npm run test:coverage
+      displayName: "run Testcases"
+    - task: SonarQubeAnalyze@8
+      displayName: 'Run SonarQube Code Analysis'
+    - task: SonarQubePublish@8
+      displayName: 'Publish Quality Gate Result'
+      inputs:
+        pollingTimeoutSec: '300'
+    - task: PublishPipelineArtifact@1
+      inputs:
+        artifact: coverage-report
+        targetPath: "$(System.DefaultWorkingDirectory)/coverage"
+      displayName: "Save coverage-report as artifact"
+    
+  
+  - job: covert_coverage_report
+    displayName: "Convert Coverage Report"
+    dependsOn: run_testcases
+    container:
+      image: python:3.15.0b2-bookworm
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: "Download coverage-report"
+      inputs:
+        artifact: 'coverage-report'
+        path: '$(Pipeline.Workspace)/coverage'
+    - script: |
+        pip install lcov-cobertura --break-system-packages
+        python3 lcov_cobertura.py $(Pipeline.Workspace)/coverage/lcov.info --output $(Pipeline.Workspace)/coverage/cobertura-coverage.xml
+      displayName: "Convert Coverage Report"
+    - task: PublishPipelineArtifact@1
+      inputs:
+        artifact: converted-report
+        targetPath: $(Pipeline.Workspace)/coverage
+      displayName: "Save Converted Coverage Report"
+
+  - job: publish_coverage
+    displayName: "Publish Coverage"
+    dependsOn: covert_coverage_report
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:8.0
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: "Download Converted Coverage Report"
+      inputs:
+        artifact: 'converted-report'
+        path: '$(Pipeline.Workspace)/coverage'
+    - script: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        export PATH="$PATH:$HOME/.dotnet/tools"
+      displayName: "Install dotnet tool for Coverage publish"
+    - task: PublishCodeCoverageResults@2
+      displayName: 'Publish Coverage to Azure UI'
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: '$(Pipeline.Workspace)/coverage/cobertura-coverage.xml'
